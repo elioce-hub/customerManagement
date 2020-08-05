@@ -40,6 +40,13 @@ server:
 external:
   url:
     rm: http://localhost:8088
+feign:
+  hystrix:
+    enabled: true
+hystrix:
+  command:
+    default:
+      execution.isolation.thread.timeoutInMilliseconds: 610
 ---
 
 spring:
@@ -68,3 +75,10 @@ spring:
 external:
   url:
     rm: http://Reservationmanagement:8080
+feign:
+  hystrix:
+    enabled: true
+hystrix:
+  command:
+    default:
+      execution.isolation.thread.timeoutInMilliseconds: 610
