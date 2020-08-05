@@ -6,8 +6,6 @@ import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -42,7 +40,7 @@ public class CustomerReservationInfoViewHandler {
         try {
             if (reservationConfirmed.isMe()) {
                 // view 객체 조회
-                Optional<CustomerReservationInfo> customerReservationInfoOptional = customerReservationInfoRepository.findByReservationId(reservationConfirmed.getReservationId());
+                Optional<CustomerReservationInfo> customerReservationInfoOptional = customerReservationInfoRepository.findByReservationId(reservationConfirmed.getReservationId().longValue());
                 if( customerReservationInfoOptional.isPresent()) {
                     CustomerReservationInfo customerReservationInfo = customerReservationInfoOptional.get();
                     // view 객체에 이벤트의 eventDirectValue 를 set 함
@@ -60,7 +58,7 @@ public class CustomerReservationInfoViewHandler {
         try {
             if (reservationConfirmedCanceled.isMe()) {
                 // view 객체 조회
-                Optional<CustomerReservationInfo> customerReservationInfoOptional = customerReservationInfoRepository.findByReservationId(reservationConfirmedCanceled.getReservationId());
+                Optional<CustomerReservationInfo> customerReservationInfoOptional = customerReservationInfoRepository.findByReservationId(reservationConfirmedCanceled.getReservationId().longValue());
                 if( customerReservationInfoOptional.isPresent()) {
                     CustomerReservationInfo customerReservationInfo = customerReservationInfoOptional.get();
                     // view 객체에 이벤트의 eventDirectValue 를 set 함

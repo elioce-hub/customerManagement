@@ -8,7 +8,6 @@ import java.util.List;
 public class CustomerReservationInfo {
 
         @Id
-        @GeneratedValue(strategy=GenerationType.AUTO)
         private Long reservationId;
         private String email;
         private String customerName;

@@ -8,6 +8,8 @@ import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class PolicyHandler{
 
@@ -27,17 +29,19 @@ public class PolicyHandler{
         //예약확정
         if(reservationConfirmed.isMe()){
             System.out.println("##### listener EmailSebding : " + reservationConfirmed.toJson());
-            CustomerReservationInfo customerReservationInfo = customerReservationInfoRepository.findByReservationId(reservationConfirmed.getReservationId().longValue());
+            Optional<CustomerReservationInfo> customerReservationInfoOptional = customerReservationInfoRepository.findByReservationId(reservationConfirmed.getReservationId().longValue());
 
-            if(customerReservationInfo != null){
-                //고객예약데이터 조회
+            if(customerReservationInfoOptional.isPresent()){
+                CustomerReservationInfo customerReservationInfo = customerReservationInfoOptional.get();
                 String email = customerReservationInfo.getEmail();
 
                 CustomerManagement customerManagement = customerManagementRepository.findByEmail(email);
-
-                customerManagement.setTotalReservationCnt(customerManagement.getTotalReservationCnt()+1); //예약건수증가
-
-                customerManagementRepository.save(customerManagement);
+                if(customerManagement != null){
+                    customerManagement.setTotalReservationCnt(customerManagement.getTotalReservationCnt()+1); //예약건수증가
+                    customerManagement.setPrcsDvsn("CONFIRM");
+                    customerManagement.setEmailReservationId(reservationConfirmed.getReservationId().longValue());
+                    customerManagementRepository.save(customerManagement);
+                }
             }
         }
     }
@@ -46,17 +50,19 @@ public class PolicyHandler{
         //예약취소
         if(reservationConfirmedCanceled.isMe()){
             System.out.println("##### listener EmailSebding : " + reservationConfirmedCanceled.toJson());
-            CustomerReservationInfo customerReservationInfo = customerReservationInfoRepository.findByReservationId(reservationConfirmedCanceled.getReservationId().longValue());
+            Optional<CustomerReservationInfo> customerReservationInfoOptional = customerReservationInfoRepository.findByReservationId(reservationConfirmedCanceled.getReservationId().longValue());
 
-            if(customerReservationInfo != null){
-                //고객예약데이터 조회
+            if(customerReservationInfoOptional.isPresent()){
+                CustomerReservationInfo customerReservationInfo = customerReservationInfoOptional.get();
                 String email = customerReservationInfo.getEmail();
 
                 CustomerManagement customerManagement = customerManagementRepository.findByEmail(email);
-
-                customerManagement.setTotalReservationCnt(customerManagement.getTotalReservationCnt()+1); //예약건수증가
-
-                customerManagementRepository.save(customerManagement);
+                if(customerManagement != null){
+                    customerManagement.setCancelCnt(customerManagement.getCancelCnt()+1); //예약건수증가
+                    customerManagement.setPrcsDvsn("CANCEL");
+                    customerManagement.setEmailReservationId(reservationConfirmedCanceled.getReservationId().longValue());
+                    customerManagementRepository.save(customerManagement);
+                }
             }
         }
     }
@@ -67,7 +73,7 @@ public class PolicyHandler{
             System.out.println("##### listener CustInfoCreate : " + reserved.toJson());
             CustomerManagement customerManagement = customerManagementRepository.findByEmail(reserved.getEmail());
 
-            if(customerManagement != null){
+            if(customerManagement == null){
                 //신규고객
                 customerManagement = new CustomerManagement();
 
@@ -75,6 +81,8 @@ public class PolicyHandler{
                 customerManagement.setCustomerName(reserved.getCustomerName());
                 customerManagement.setCancelCnt(0);
                 customerManagement.setTotalReservationCnt(0);
+                customerManagement.setPrcsDvsn("CREATE");
+                System.out.println("##### listener CustInfoCreate customerManagement : " + customerManagement.toString());
 
                 customerManagementRepository.save(customerManagement);
             }

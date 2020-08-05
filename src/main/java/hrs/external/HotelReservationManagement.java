@@ -5,6 +5,7 @@ public class HotelReservationManagement {
     private Long id;
     private Long reservationId;
     private String status;
+    private String couponPin;
 
     public Long getId() {
         return id;
@@ -23,6 +24,12 @@ public class HotelReservationManagement {
     }
     public void setStatus(String status) {
         this.status = status;
+    }
+    public String getCouponPin() {
+        return couponPin;
+    }
+    public void setCouponPin(String couponPin) {
+        this.couponPin = couponPin;
     }
 
 }

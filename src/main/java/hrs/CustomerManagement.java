@@ -9,7 +9,6 @@ import java.util.List;
 public class CustomerManagement {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private String email;
     private Integer totalReservationCnt;
     private Integer cancelCnt;
@@ -18,36 +17,64 @@ public class CustomerManagement {
     private String couponStatus;
     private String customerName;
     private String couponPin;
+    private String prcsDvsn; //처리구분 CREATE, CONFIRM, CANCEL, COUPON
+    private Long emailReservationId;
 
     @PostUpdate
     public void onPostUpdate(){
-        ConfirmationEmailSent confirmationEmailSent = new ConfirmationEmailSent();
-        BeanUtils.copyProperties(this, confirmationEmailSent);
-        confirmationEmailSent.publishAfterCommit();
 
+        if("CONFIRM".equals(getPrcsDvsn())){
 
-        ReservationCancellationEmailSent reservationCancellationEmailSent = new ReservationCancellationEmailSent();
-        BeanUtils.copyProperties(this, reservationCancellationEmailSent);
-        reservationCancellationEmailSent.publishAfterCommit();
+            ConfirmationEmailSent confirmationEmailSent = new ConfirmationEmailSent();
+            BeanUtils.copyProperties(this, confirmationEmailSent);
+            confirmationEmailSent.setId(getEmailReservationId());
+            confirmationEmailSent.publishAfterCommit();
+        }
 
+        if("CANCEL".equals(getPrcsDvsn())){
 
+            ReservationCancellationEmailSent reservationCancellationEmailSent = new ReservationCancellationEmailSent();
+            BeanUtils.copyProperties(this, reservationCancellationEmailSent);
+            reservationCancellationEmailSent.setId(getEmailReservationId());
+            reservationCancellationEmailSent.publishAfterCommit();
+        }
     }
 
     @PreUpdate
     public void onPreUpdate(){
-        CouponIssued couponIssued = new CouponIssued();
-        BeanUtils.copyProperties(this, couponIssued);
-        couponIssued.publishAfterCommit();
+        System.out.println("### onPreUpdate ###");
 
-        //Following code causes dependency to external APIs
-        // it is NOT A GOOD PRACTICE. instead, Event-Policy mapping is recommended.
+        if("COUPON".equals(getPrcsDvsn())){
 
-        hrs.external.HotelReservationManagement hotelReservationManagement = new hrs.external.HotelReservationManagement();
-        // mappings goes here
-        CustomerManagementApplication.applicationContext.getBean(hrs.external.HotelReservationManagementService.class)
-            .availableCouponCheck(hotelReservationManagement);
+            System.out.println("### CustomerManagement onPreUpdate IN ###");
 
+            CouponIssued couponIssued = new CouponIssued();
+            BeanUtils.copyProperties(this, couponIssued);
 
+            //쿠폰번호생성
+            couponIssued.setCouponIssueReservationCnt(getTotalReservationCnt());
+            couponIssued.setCouponPin("C1234D22");
+            couponIssued.setCouponStatus("ISSUED");
+            couponIssued.setLastCouponIssueDate("20200805");
+
+            couponIssued.publishAfterCommit();
+
+            //Following code causes dependency to external APIs
+            // it is NOT A GOOD PRACTICE. instead, Event-Policy mapping is recommended.
+
+            hrs.external.HotelReservationManagement hotelReservationManagement = new hrs.external.HotelReservationManagement();
+            // mappings goes here
+            hotelReservationManagement.setCouponPin(couponIssued.getCouponPin());
+
+            CustomerManagementApplication.applicationContext.getBean(hrs.external.HotelReservationManagementService.class)
+                .availableCouponCheck(hotelReservationManagement);
+
+            // 테이블 업데이트 값 세팅
+            setCouponIssueReservationCnt(couponIssued.getCouponIssueReservationCnt());
+            setCouponPin(couponIssued.getCouponPin());
+            setCouponStatus(couponIssued.getCouponStatus());
+            setLastCouponIssueDate(couponIssued.getLastCouponIssueDate());
+        }
     }
 
 
@@ -107,8 +134,20 @@ public class CustomerManagement {
     public void setCouponPin(String couponPin) {
         this.couponPin = couponPin;
     }
+    public String getPrcsDvsn() {
+        return prcsDvsn;
+    }
 
+    public void setPrcsDvsn(String prcsDvsn) {
+        this.prcsDvsn = prcsDvsn;
+    }
+    public Long getEmailReservationId() {
+        return emailReservationId;
+    }
 
+    public void setEmailReservationId(Long emailReservationId) {
+        this.emailReservationId = emailReservationId;
+    }
 
 
 }
