@@ -56,9 +56,7 @@ public class CustomerManagement {
             couponIssued.setCouponPin("C1234D22");
             couponIssued.setCouponStatus("ISSUED");
             couponIssued.setLastCouponIssueDate("20200805");
-
-            couponIssued.publishAfterCommit();
-
+            
             //Following code causes dependency to external APIs
             // it is NOT A GOOD PRACTICE. instead, Event-Policy mapping is recommended.
 
@@ -74,6 +72,8 @@ public class CustomerManagement {
             setCouponPin(couponIssued.getCouponPin());
             setCouponStatus(couponIssued.getCouponStatus());
             setLastCouponIssueDate(couponIssued.getLastCouponIssueDate());
+
+            couponIssued.publishAfterCommit();
         }
     }
 
