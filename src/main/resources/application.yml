@@ -74,7 +74,7 @@ spring:
           contentType: application/json
 external:
   url:
-    rm: http://Reservationmanagement:8080
+    rm: http://reservationmanagement:8080
 feign:
   hystrix:
     enabled: true
